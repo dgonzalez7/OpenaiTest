@@ -38,7 +38,7 @@ print(result_df)
 print("\n\nStarting next section...\n")
 
 def create_table_definition(df):
-    prompt = """### sqlite SQL tabel, with its properies:
+    prompt = """### sqlite SQL table, with its properies:
     # 
     # Sales({})
     
@@ -60,32 +60,47 @@ def combine_prompts(df, query_prompt):
     definition = create_table_definition(df)
     query_init_string = f"### A query to answer: {query_prompt}\nSELECT"
 
-    print("\ndefinition:\n")
-    print(definition)
-    print("\nquery_init_string:\n")
-    print(query_init_string)
-
     return definition+query_init_string
 
 nlp_text = prompt_input()  # NLP
-command_for_openai = combine_prompts(df, nlp_text)  # DF + query + NLP
+prompt = combine_prompts(df, nlp_text)  # DF + query + NLP
 
-print("\nThe command:\n")
-print(command_for_openai)
+print("\nThe prompt:\n")
+print(prompt)
 
-# client = OpenAI()
+client = OpenAI()
 
-# completion = client.chat.completions.create(
-#     model="gpt-4o-mini",
-#     messages=[
-#         {"role": "system", "content": "You are a helpful assistant."},
-#         {"role": "user", "content": "Name five popular flavors of ice cream."}
-#   ]
-# )
+completion = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": "You are only writing SQL."},
+        {"role": "user", "content": prompt}],
+    temperature=0,
+    max_tokens=150,
+    frequency_penalty=0,
+    presence_penalty=0,
+    stop=['#',';']
+)
 
-# print("Response:\n" + completion.choices[0].message.content)
+print("Response:\n" + completion.choices[0].message.content)
 
-# print("\n\nDiag:\n")
-# print(completion.choices[0])
+print("\n\nDiag:\n")
+print(completion.choices[0])
+
+sql_query = completion.choices[0].message.content
+print("\n\n<<<" + sql_query + ">>>\n\n")
+
+trimmed_sql_query = sql_query[6:]
+print(trimmed_sql_query)
+
+with temp_db.connect() as conn:
+    result = conn.execute(text(trimmed_sql_query))
+
+ # Convert result to a pandas DataFrame
+result_df = pd.DataFrame(result.fetchall(), columns=result.keys())
+    
+# Print the DataFrame
+print(result_df)
+
 
 print("\nProgram end...")
