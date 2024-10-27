@@ -1,9 +1,18 @@
-import openai
 import os
+from openai import OpenAI
 
 print ("Hello World!!!")
 
-print (os.getenv('OPENAI_TEST_VAR'))
-# print (os.getenv('OPENAI_API_KEY'))
+client = OpenAI()
 
-print ("Ending program...")
+completion = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {
+            "role": "user",
+            "content": "Name five flavors of ice cream."
+        }
+    ]
+)
+
+print(completion.choices[0].message)
