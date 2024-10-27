@@ -13,4 +13,9 @@ completion = client.chat.completions.create(
   ]
 )
 
-print(completion.choices[0].message.content)
+print("Response:\n" + completion.choices[0].message.content)
+
+print("\n\nDiag:\n")
+print(completion.choices[0])
+
+print("\nProgram end...")
